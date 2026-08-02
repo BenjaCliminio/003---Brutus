@@ -1,0 +1,4 @@
+pyyaml # lee los archivos .yaml (perfil OSINT y reglas de mutación)
+paramiko # maneja las conexiones SSH en attack_engine.py
+requests # hace las peticiones HTTP para el plugin de formularios web
+reportlab # genera el informe PDF final
