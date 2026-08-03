@@ -1,0 +1,19 @@
+# Reglas de mutación por defecto
+# Se aplican sobre la wordlist base generada desde el perfil OSINT
+
+capitalizar: true
+leetspeak: true
+invertir: false
+
+sufijos:
+  - "123"
+  - "1234"
+  - "!"
+  - "@"
+  - "2023"
+  - "2024"
+  - "2025"
+  - "2026"
+
+prefijos:
+  - ""

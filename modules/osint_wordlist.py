@@ -108,4 +108,4 @@ if __name__ == "__main__":
     perfil = cargar_perfil(sys.argv[1])
     palabras = generar_wordlist_base(perfil)
     guardar_wordlist(palabras, sys.argv[2])
-    print(f"[+] {len(palabras)} palabras base generadas en {sys.argv[2]}")
+    print(Fore.GREEN + f"[+] {len(wordlist_base)} palabras base generadas")

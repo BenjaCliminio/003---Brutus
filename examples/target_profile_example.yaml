@@ -1,0 +1,13 @@
+# Ejemplo de perfil OSINT — usar SOLO con datos de un laboratorio propio
+# o un objetivo de práctica autorizado (nunca con datos reales de terceros
+# sin consentimiento explícito)
+
+nombre: "Juan"
+apellido: "Perez"
+fecha_nacimiento: "1995-04-12"
+empresa: "AcmeCorp"
+mascota: "Firulais"
+equipo_favorito: "River"
+apodos:
+  - "juancito"
+hijos: []
