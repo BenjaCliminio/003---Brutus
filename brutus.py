@@ -1,36 +1,65 @@
-# B.R.U.T.U.S (Desarrollada por BSEC)
-# ------------
-# Orquestador principal de BRUTUS — herramienta de auditoría de contraseñas basada en OSINT.
+"""
+Brutus.py
+---------
+Orquestador principal de BRUTUS — herramienta de auditoría de
+contraseñas basada en OSINT.
 
-# Flujo completo:
-  # 1. Genera wordlist base desde perfil OSINT (osint_wordlist.py)
-  # 2. Aplica reglas de mutación (rules_engine.py)
-  # 3. Ejecuta el ataque de diccionario (attack_engine.py)
-  # 4. Genera el informe PDF (report_generator.py)
+Flujo completo:
+  1. Genera wordlist base desde perfil OSINT (osint_wordlist.py)
+  2. Aplica reglas de mutación (rules_engine.py)
+  3. Ejecuta el ataque de diccionario (attack_engine.py)
+  4. Genera el informe PDF (report_generator.py)
 
-#USO EXCLUSIVO en entornos autorizados: laboratorios propios, máquinas de práctica (VulnHub, HackTheBox, DVWA, etc.) o pentests con consentimiento explícito por escrito del propietario del sistema.
+USO EXCLUSIVO en entornos autorizados: laboratorios propios,
+máquinas de práctica (VulnHub, HackTheBox, DVWA, etc.) o pentests
+con consentimiento explícito por escrito del propietario del sistema.
+"""
 
-
-# ==================================================================
-# 01 - Bloque de Imports (Qué trae cada módulo (OSINT, reglas, ataque, reporte) y por qué.)
-#===================================================================
+# ============================================================
+# 01 - BLOQUE DE IMPORTS
+# ============================================================
+# argparse: para leer los parámetros que el usuario pasa por consola
+# colorama: para que los mensajes de consola salgan con color
+# modules.*: los cuatro componentes que arman cada etapa del flujo
 import argparse
+from colorama import init, Fore, Style
 
 from modules.osint_wordlist import cargar_perfil, generar_wordlist_base
 from modules.rules_engine import cargar_reglas, aplicar_reglas
 from modules.attack_engine import MotorAtaque, PluginSSH, PluginHTTPForm
 from modules.report_generator import generar_reporte_pdf
-from colorama import init, Fore, Style
 
 init(autoreset=True)
 
-#===================================================================
-# 02 - Funcion orquestadora principal (Unica funcion del archivo, dentro se divide en sub-bloques.)
-#===================================================================
+VERSION = "1.0.0"
+
+# Banner ASCII mostrado al iniciar (estilo Hydra / John the Ripper)
+BANNER = r"""
+ ____  ____  _   _ _____ _   _ ____
+| __ )|  _ \| | | |_   _| | | / ___|
+|  _ \| |_) | | | | | | | | | \___ \
+| |_) |  _ <| |_| | | | | |_| |___) |
+|____/|_| \_\\___/  |_|  \___/|____/
+"""
+
+
+def mostrar_banner():
+    """Imprime el banner de bienvenida con datos básicos de la herramienta."""
+    print(Fore.RED + Style.BRIGHT + BANNER)
+    print(Fore.CYAN + f"  BRUTUS v{VERSION} — Auditoría de contraseñas basada en OSINT")
+    print(Fore.YELLOW + "  Uso exclusivo en entornos autorizados (labs propios, CTFs, pentests con consentimiento)")
+    print(Fore.WHITE + "-" * 70)
+
+
+# ============================================================
+# 02 - FUNCION ORQUESTADORA PRINCIPAL
+# ============================================================
 def main():
-#===================================================================
-## Parseo de argumentos (define qué datos necesita el usuario pasar por consola (perfil OSINT, reglas, host, puerto, usuario, protocolo, etc.) y por qué cada uno es necesario.)
-#===================================================================
+    mostrar_banner()
+
+    # ------------------------------------------------------------
+    # Parseo de argumentos
+    # ------------------------------------------------------------
     parser = argparse.ArgumentParser(
         description="BRUTUS — Herramienta de auditoría de contraseñas basada en OSINT (uso autorizado únicamente)"
     )
@@ -48,25 +77,25 @@ def main():
     parser.add_argument("--salida-pdf", default="informe.pdf", help="Ruta del informe PDF de salida")
 
     args = parser.parse_args()
-#===================================================================
-## Etapa 1 - Generacion de Wordlist base (carga el perfil OSINT y genera las palabras semilla (nombre, apellido, fecha, etc.) sin mutaciones todavía.)
-#===================================================================
+
+    # ------------------------------------------------------------
+    # Etapa 1 - Generación de wordlist base
+    # ------------------------------------------------------------
     print(Fore.CYAN + "[*] Generando wordlist base desde perfil OSINT...")
     perfil = cargar_perfil(args.perfil)
     wordlist_base = generar_wordlist_base(perfil)
-    print(f"[+] {len(wordlist_base)} palabras base generadas")
+    print(Fore.GREEN + f"[+] {len(wordlist_base)} palabras base generadas")
 
-#===================================================================
-## Etapa 2 - Aplicacion de reglas de mutacion (toma la wordlist base y la expande aplicando leetspeak, sufijos, capitalización, etc.)
-#===================================================================
+    # ------------------------------------------------------------
+    # Etapa 2 - Aplicación de reglas de mutación
+    # ------------------------------------------------------------
     print(Fore.CYAN + "[*] Aplicando reglas de mutación...")
     reglas = cargar_reglas(args.reglas)
     wordlist_final = aplicar_reglas(wordlist_base, reglas)
-    print(f"[+] Wordlist final: {len(wordlist_final)} candidatos")
+    print(Fore.GREEN + f"[+] Wordlist final: {len(wordlist_final)} candidatos")
 
-# ------------------------------------------------------------
-    # Etapa 3 - Selección del plugin de protocolo (decide si usar
-    # PluginSSH o PluginHTTPForm según lo que eligió el usuario)
+    # ------------------------------------------------------------
+    # Etapa 3 - Selección del plugin de protocolo
     # ------------------------------------------------------------
     if args.protocolo == "ssh":
         plugin = PluginSSH()
@@ -81,10 +110,9 @@ def main():
         )
 
     # ------------------------------------------------------------
-    # Etapa 4 - Ejecución del ataque (instancia el MotorAtaque con
-    # el plugin elegido y corre la wordlist final contra el objetivo)
+    # Etapa 4 - Ejecución del ataque
     # ------------------------------------------------------------
-    print(f"[*] Ejecutando ataque de diccionario contra {args.host}:{args.puerto} ({args.protocolo})...")
+    print(Fore.CYAN + f"[*] Ejecutando ataque de diccionario contra {args.host}:{args.puerto} ({args.protocolo})...")
     motor = MotorAtaque(plugin, args.host, args.puerto, delay_seg=args.delay)
     resultado = motor.ejecutar(args.usuario, sorted(wordlist_final))
 
@@ -92,15 +120,14 @@ def main():
     # Etapa 5 - Reporte de resultado por consola
     # ------------------------------------------------------------
     if resultado.credencial_encontrada:
-        print(f"[!] Credencial encontrada: {resultado.credencial_encontrada.password}")
+        print(Fore.GREEN + f"[!] Credencial encontrada: {resultado.credencial_encontrada.password}")
     else:
-        print("[-] No se encontró ninguna credencial válida en la wordlist")
+        print(Fore.RED + "[-] No se encontró ninguna credencial válida en la wordlist")
 
     # ------------------------------------------------------------
-    # Etapa 6 - Generación del informe PDF (arma el reporte final
-    # con resumen ejecutivo, estadísticas y recomendaciones)
+    # Etapa 6 - Generación del informe PDF
     # ------------------------------------------------------------
-    print("[*] Generando informe PDF...")
+    print(Fore.CYAN + "[*] Generando informe PDF...")
     generar_reporte_pdf(resultado, args.salida_pdf)
 
 

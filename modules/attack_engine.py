@@ -18,6 +18,8 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import List, Optional
 
+from tqdm import tqdm
+
 
 @dataclass
 class ResultadoIntento:
@@ -95,6 +97,7 @@ class MotorAtaque:
     """
     Orquesta el ataque de diccionario contra un objetivo, con:
     - Backoff simple entre intentos para no saturar el objetivo.
+    - Barra de progreso en consola (tqdm) para estimar tiempo restante.
     - Detección heurística de honeypot/tarpit basada en varianza de tiempos.
     """
 
@@ -110,7 +113,11 @@ class MotorAtaque:
         resultado = ResultadoAtaque(objetivo=self.host, protocolo=self.plugin.nombre)
         inicio = time.time()
 
-        for password in wordlist:
+        # tqdm envuelve la wordlist y dibuja la barra de progreso en
+        # consola: porcentaje, intentos/segundo y tiempo estimado restante.
+        barra = tqdm(wordlist, desc="Probando contraseñas", unit="pw")
+
+        for password in barra:
             t0 = time.time()
             exito = self.plugin.probar_credencial(self.host, self.puerto, usuario, password)
             t1 = time.time()
@@ -120,6 +127,8 @@ class MotorAtaque:
             resultado.total_intentos += 1
 
             if exito:
+                # Muestra la credencial encontrada como último estado de la barra
+                barra.set_postfix(encontrada=password)
                 resultado.credencial_encontrada = intento
                 break
 

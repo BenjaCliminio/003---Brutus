@@ -3,3 +3,4 @@ paramiko # maneja las conexiones SSH en attack_engine.py
 requests # hace las peticiones HTTP para el plugin de formularios web
 reportlab # genera el informe PDF final
 colorama # Colores y estilo
+tqdm # Barra de progreso
